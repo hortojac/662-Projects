@@ -179,19 +179,8 @@ typeofMonad (Between x y z) = do
 
 -- Exercise 3
 interpTypeEval :: KULang -> Maybe KULang
-interpTypeEval expr = do
-  t <- typeofMonad expr
-  case t of
-    TNum -> do
-      v <- evalMonad expr
-      case v of
-        Num n -> return (Num n)
-        _ -> Nothing
-    TBool -> do
-      v <- evalMonad expr
-      case v of
-        Boolean b -> return (Boolean b)
-        _ -> Nothing
+interpTypeEval x = do {x' <- typeofMonad x;
+                       if (x'==TNum)||(x'==TBool) then evalMonad x else Nothing}
 
 -- Part 2: Optimizer
 
@@ -222,7 +211,4 @@ optimize (Between x y z) = Between (optimize x) (optimize y) (optimize z)
 
 -- Exercise 2
 interpOptEval :: KULang -> Maybe KULang
-interpOptEval expr =
-  let optimizedExpr = optimize expr
-   in evalMonad optimizedExpr
-
+interpOptEval x = evalMonad (optimize x)
