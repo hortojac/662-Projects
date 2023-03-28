@@ -116,11 +116,11 @@ typeofMonad (Plus x y) = do
     then Just TNum
     else Nothing
 typeofMonad (Minus x y) = do
-  (Num x') <- evalMonad x
-  (Num y') <- evalMonad y
-  if x' - y' < 0
-    then Nothing
-    else Just TNum
+  x' <- typeofMonad x
+  y' <- typeofMonad y
+  if x' == TNum && y' == TNum
+    then Just TNum
+    else Nothing
 typeofMonad (Mult x y) = do
   x' <- typeofMonad x
   y' <- typeofMonad y
@@ -130,7 +130,7 @@ typeofMonad (Mult x y) = do
 typeofMonad (Div x y) = do
   x' <- typeofMonad x
   y' <- typeofMonad y
-  if x' == TNum && y' == TNum && evalMonad y /= Just (Num 0)
+  if x' == TNum && y' == TNum
     then Just TNum
     else Nothing
 typeofMonad (Exp x y) = do
