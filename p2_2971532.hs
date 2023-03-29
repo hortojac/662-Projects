@@ -179,8 +179,11 @@ typeofMonad (Between x y z) = do
 
 -- Exercise 3
 interpTypeEval :: KULang -> Maybe KULang
-interpTypeEval x = do {x' <- typeofMonad x;
-                       if (x'==TNum)||(x'==TBool) then evalMonad x else Nothing}
+interpTypeEval x = do 
+  x' <- typeofMonad x
+  if (x'==TNum)||(x'==TBool)
+    then evalMonad x 
+    else Nothing
 
 -- Part 2: Optimizer
 
