@@ -128,11 +128,14 @@ typeofMonad (Mult x y) = do
     then Just TNum
     else Nothing
 typeofMonad (Div x y) = do
-  x' <- typeofMonad x
-  y' <- typeofMonad y
-  if x' == TNum && y' == TNum
-    then Just TNum
-    else Nothing
+  if y == Num 0
+    then Nothing
+    else do
+      x' <- typeofMonad x
+      y' <- typeofMonad y
+      if x' == TNum && y' == TNum
+        then Just TNum
+        else Nothing
 typeofMonad (Exp x y) = do
   x' <- typeofMonad x
   y' <- typeofMonad y
