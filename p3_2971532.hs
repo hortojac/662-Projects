@@ -35,6 +35,22 @@ type Cont = [(String,KUTypeLang)]
 ------ Project Exercises ------
 -------------------------------
 -- Part 1: Adding Booleans
+subst :: String -> KULang -> KULang -> KULang
+subst x y (Num z) = Num z
+subst x y (Plus z w) = Plus (subst x y z) (subst x y w)
+subst x y (Minus z w) = Minus (subst x y z) (subst x y w)
+subst x y (Mult z w) = Mult (subst x y z) (subst x y w)
+subst x y (Div z w) = Div (subst x y z) (subst x y w)
+subst x y (Exp z w) = Exp (subst x y z) (subst x y w)
+subst x y (Boolean z) = Boolean z
+subst x y (And z w) = And (subst x y z) (subst x y w)
+subst x y (Or z w) = Or (subst x y z) (subst x y w)
+subst x y (Leq z w) = Leq (subst x y z) (subst x y w)
+subst x y (IsZero z) = IsZero (subst x y z)
+subst x y (If z w v) = If (subst x y z) (subst x y w) (subst x y v)
+subst x y (Between z w v) = Between (subst x y z) (subst x y w) (subst x y v)
+subst x y (Bind z w v) = if z==x then Bind z w v else Bind z (subst x y w) (subst x y v)
+subst x y (Id z) = if z==x then y else Id z
 
 -- Exercise 1
 evalDirect :: KULang -> Maybe KULang
@@ -85,7 +101,7 @@ evalDirect (Between x y z) = do
     if x'<=y' && y'<=z' then return (Boolean True) else return (Boolean False)
 evalDirect (Bind x y z) = do
     y' <- evalDirect y
-    return (Bind x y' z)
+    evalDirect (subst x y' z)
 evalDirect (Id x) = Nothing
 
 -- Exercise 2

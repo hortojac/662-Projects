@@ -1,21 +1,18 @@
 {-# LANGUAGE GADTs,FlexibleContexts #-}
 {-# OPTIONS_GHC -Wno-missing-methods #-}
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use newtype instead of data" #-}
-{-# OPTIONS_GHC -Wno-noncanonical-monad-instances #-}
 
 -- Abstract Syntax Definitions
 data KULang where
-    Num :: Int -> KULang
-    Plus :: KULang -> KULang -> KULang
+    Num :: Int -> KULang  
+    Plus :: KULang -> KULang -> KULang 
     Minus :: KULang -> KULang -> KULang
-    Mult :: KULang -> KULang -> KULang
-    Div :: KULang -> KULang -> KULang
+    Mult :: KULang -> KULang -> KULang 
+    Div :: KULang -> KULang -> KULang  
     Exp :: KULang -> KULang -> KULang
     If0 :: KULang -> KULang -> KULang -> KULang
     Id :: String -> KULang
-    Lambda :: String -> KULang -> KULang
-    App :: KULang -> KULang -> KULang
+    Lambda :: String -> KULang -> KULang 
+    App :: KULang -> KULang -> KULang 
     deriving (Show,Eq)
 
 data KULangVal where
@@ -32,7 +29,7 @@ data KULangExt where
     ExpX :: KULangExt -> KULangExt -> KULangExt
     If0X :: KULangExt -> KULangExt -> KULangExt -> KULangExt
     LambdaX :: String -> KULangExt -> KULangExt
-    AppX :: KULangExt -> KULangExt -> KULangExt
+    AppX :: KULangExt -> KULangExt -> KULangExt 
     BindX :: String -> KULangExt -> KULangExt -> KULangExt
     IdX :: String -> KULangExt
     deriving (Show,Eq)
@@ -46,13 +43,13 @@ data Reader e a = Reader (e -> a)
 
 -- Monad Definition
 instance Monad (Reader e) where
- return x = Reader $ const x
- g >>= f = Reader $ \e -> runR (f (runR g e)) e
+ return x = Reader $ \e -> x 
+ g >>= f = Reader $ \e -> runR (f (runR g e)) e 
 
  -- Applicative Definition
 instance Applicative (Reader e) where
- pure x = Reader $ const x
-(Reader f) <*> (Reader g) = Reader $ \e -> f e (g e)
+ pure x = Reader $ \e -> x
+(Reader f) <*> (Reader g) = Reader $ \e -> (f e) (g e)
 
 -- Functor Definition
 instance Functor (Reader e) where
@@ -64,16 +61,16 @@ instance MonadFail (Reader e) where
 
 -- Helper Methods
 runR :: Reader e a -> e -> a
-runR (Reader f) = f
+runR (Reader f) e = f e 
 
-ask :: Reader a a
-ask = Reader id
+ask :: Reader a a 
+ask = Reader $ \e -> e
 
-local :: (e->t) -> Reader t a -> Reader e a
+local :: (e->t) -> Reader t a -> Reader e a 
 local f r = ask >>= \e -> return (runR r (f e))
 
 useClosure :: String -> KULangVal -> EnvVal -> EnvVal -> EnvVal
-useClosure i v e _ = (i,v):e
+useClosure i v e _ = (i,v):e 
 
 
 -----------------------------
@@ -173,6 +170,41 @@ interpElab e x = evalStat e (elabTerm x)
 -- Exercise 5:
 evalReader :: KULang -> Reader EnvVal KULangVal
 evalReader (Num x) = return (NumV x)
+evalReader (Plus x y) = do
+    NumV x' <- evalReader x
+    NumV y' <- evalReader y
+    return (NumV (x' + y'))
+evalReader (Minus x y) = do
+    NumV x' <- evalReader x
+    NumV y' <- evalReader y
+    return (NumV (x' - y'))
+evalReader (Mult x y) = do
+    NumV x' <- evalReader x
+    NumV y' <- evalReader y
+    return (NumV (x' * y'))
+evalReader (Div x y) = do
+    NumV x' <- evalReader x
+    NumV y' <- evalReader y
+    return (NumV (x' `div` y'))
+evalReader (Exp x y) = do
+    NumV x' <- evalReader x
+    NumV y' <- evalReader y
+    return (NumV (x' ^ y'))
+evalReader (If0 x y z) = do
+    NumV x' <- evalReader x
+    if x' == 0 then evalReader y else evalReader z
+evalReader (Lambda x y) = do
+    e <- ask
+    return (ClosureV x y e)
+evalReader (App x y) = do
+    ClosureV x' y' e' <- evalReader x
+    z <- evalReader y
+    local (useClosure x' z e') (evalReader y')
+evalReader (Id x) = do
+    e <- ask
+    case lookup x e of
+        Just v -> return v
+        Nothing -> error "Unbound variable"
 
 -- Exercise 6:
 interpReader :: KULangExt -> KULangVal
