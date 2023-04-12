@@ -43,17 +43,17 @@ data Reader e a = Reader (e -> a)
 
 -- Monad Definition
 instance Monad (Reader e) where
- return x = Reader $ \e -> x 
- g >>= f = Reader $ \e -> runR (f (runR g e)) e 
+return x = Reader $ \e -> x 
+g >>= f = Reader $ \e -> runR (f (runR g e)) e 
 
  -- Applicative Definition
 instance Applicative (Reader e) where
- pure x = Reader $ \e -> x
+pure x = Reader $ \e -> x
 (Reader f) <*> (Reader g) = Reader $ \e -> (f e) (g e)
 
 -- Functor Definition
 instance Functor (Reader e) where
- fmap f (Reader g) = Reader $ \e -> (f . g) e
+fmap f (Reader g) = Reader $ \e -> (f . g) e
 
 -- Fail Definition
 instance MonadFail (Reader e) where
@@ -81,7 +81,7 @@ useClosure i v e _ = (i,v):e
 
 -- Exercise 1:
 evalDyn :: Env -> KULang -> Maybe KULang
-evalDyn e (Num x) = Just (Num x)
+evalDyn e (Num x) = if x < 0 then Nothing else Just (Num x)
 evalDyn e (Plus x y) = do
     Num x' <- evalDyn e x
     Num y' <- evalDyn e y
@@ -89,7 +89,7 @@ evalDyn e (Plus x y) = do
 evalDyn e (Minus x y) = do
     Num x' <- evalDyn e x
     Num y' <- evalDyn e y
-    return (Num (x' - y'))
+    if x' - y' < 0 then Nothing else return (Num (x' - y'))
 evalDyn e (Mult x y) = do
     Num x' <- evalDyn e x
     Num y' <- evalDyn e y
@@ -97,7 +97,7 @@ evalDyn e (Mult x y) = do
 evalDyn e (Div x y) = do
     Num x' <- evalDyn e x
     Num y' <- evalDyn e y
-    return (Num (x' `div` y'))
+    if y' == 0 then Nothing else return (Num (x' `div` y'))
 evalDyn e (Exp x y) = do
     Num x' <- evalDyn e x
     Num y' <- evalDyn e y
@@ -114,7 +114,7 @@ evalDyn e (Id x) = lookup x e
 
 -- Exercise 2:
 evalStat :: EnvVal -> KULang -> Maybe KULangVal
-evalStat e (Num x) = Just (NumV x)
+evalStat e (Num x) = if x < 0 then Nothing else Just (NumV x)
 evalStat e (Plus x y) = do
     NumV x' <- evalStat e x
     NumV y' <- evalStat e y
@@ -122,7 +122,7 @@ evalStat e (Plus x y) = do
 evalStat e (Minus x y) = do
     NumV x' <- evalStat e x
     NumV y' <- evalStat e y
-    return (NumV (x' - y'))
+    if x' - y' < 0 then Nothing else return (NumV (x' - y'))
 evalStat e (Mult x y) = do
     NumV x' <- evalStat e x
     NumV y' <- evalStat e y
@@ -130,7 +130,7 @@ evalStat e (Mult x y) = do
 evalStat e (Div x y) = do
     NumV x' <- evalStat e x
     NumV y' <- evalStat e y
-    return (NumV (x' `div` y'))
+    if y' == 0 then Nothing else return (NumV (x' `div` y'))
 evalStat e (Exp x y) = do
     NumV x' <- evalStat e x
     NumV y' <- evalStat e y
