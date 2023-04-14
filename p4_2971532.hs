@@ -43,17 +43,17 @@ data Reader e a = Reader (e -> a)
 
 -- Monad Definition
 instance Monad (Reader e) where
-return x = Reader $ \e -> x 
-g >>= f = Reader $ \e -> runR (f (runR g e)) e 
+ return x = Reader $ \e -> x 
+ g >>= f = Reader $ \e -> runR (f (runR g e)) e 
 
  -- Applicative Definition
 instance Applicative (Reader e) where
-pure x = Reader $ \e -> x
+ pure x = Reader $ \e -> x
 (Reader f) <*> (Reader g) = Reader $ \e -> (f e) (g e)
 
 -- Functor Definition
 instance Functor (Reader e) where
-fmap f (Reader g) = Reader $ \e -> (f . g) e
+ fmap f (Reader g) = Reader $ \e -> (f . g) e
 
 -- Fail Definition
 instance MonadFail (Reader e) where
